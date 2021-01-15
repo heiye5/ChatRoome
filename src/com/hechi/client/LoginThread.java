@@ -8,7 +8,9 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import javax.swing.JButton;
@@ -81,7 +83,7 @@ public class LoginThread extends Thread {
          * 监听器,监听"登录"Button的点击和TextField的回车
          */
         class ButtonListener implements ActionListener {
-            private Socket s;
+            private String sql = "";
 
             public void actionPerformed(ActionEvent e) {
                 String username = loginname.getText();
@@ -92,7 +94,7 @@ public class LoginThread extends Thread {
                 String url = "jdbc:oracle:thin:@localhost:1521:orcl";
                 String dbUserName = "opts";
                 String dbPassword = "opts1234";
-                String sql = "select * from users where username = ?";
+                sql = "select * from users where username = ?";
 
                 try {
                     Connection connection = DriverManager.getConnection(url,dbUserName,dbPassword);
@@ -104,7 +106,17 @@ public class LoginThread extends Thread {
                     if(rs.next()){
 //                        System.out.println("sad");
                         if(MD5.checkpassword(password,rs.getString("password"))){
-                            System.out.println("登录成功");
+                            //获取本机ip
+                            InetAddress ip = InetAddress.getLocalHost();
+                            //设置开启端口8888
+                            String port = "8888";
+                            //在数据库添加ip和端口
+                            sql = "update users set ip = ?,port = ? where username = ?";
+                            ps = connection.prepareStatement(sql);
+                            ps.setString(1, String.valueOf(ip));
+                            ps.setString(2,port);
+                            ps.setString(3,username);
+                            ps.executeUpdate();
 
                             //窗口隐藏,public void setVisible(boolean aFlag)：使该组件可见或不可见。
                             loginf.setVisible(false);
@@ -119,6 +131,8 @@ public class LoginThread extends Thread {
                 } catch (NoSuchAlgorithmException ex) {
                     ex.printStackTrace();
                 } catch (UnsupportedEncodingException ex) {
+                    ex.printStackTrace();
+                } catch (UnknownHostException ex) {
                     ex.printStackTrace();
                 }
 
