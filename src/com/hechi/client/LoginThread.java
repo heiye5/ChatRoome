@@ -104,6 +104,8 @@ public class LoginThread extends Thread {
                     if(rs.next()){
                         if(MD5.checkpassword(password,rs.getString("password"))){
                             System.out.println("登录成功");
+                            ChatThreadWindow  chatThreadWindow = new ChatThreadWindow();
+
                         }else{
                             System.out.println("登录失败");
                         }
