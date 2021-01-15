@@ -102,8 +102,12 @@ public class LoginThread extends Thread {
                     ResultSet rs = ps.executeQuery();
 
                     if(rs.next()){
+//                        System.out.println("sad");
                         if(MD5.checkpassword(password,rs.getString("password"))){
                             System.out.println("登录成功");
+
+                            //窗口隐藏,public void setVisible(boolean aFlag)：使该组件可见或不可见。
+                            loginf.setVisible(false);
                             ChatThreadWindow  chatThreadWindow = new ChatThreadWindow();
 
                         }else{
