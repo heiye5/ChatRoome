@@ -86,30 +86,60 @@ public class LoginThread extends Thread {
             public void actionPerformed(ActionEvent e) {
                 String username = loginname.getText();
                 String password = loginPassword.getText();
+
+//                System.out.println(username + password);
+
+                String url = "jdbc:oracle:thin:@localhost:1521:orcl";
+                String dbUserName = "opts";
+                String dbPassword = "opts1234";
+                String sql = "select * from users where username = ?";
+
                 try {
-                    String url = "jdbc:oracle:thin:@localhost:1521:orcl";
-                    String username_db = "opts";
-                    String password_db = "opts1234";
-                    Connection conn = DriverManager.getConnection(url, username_db, password_db);
-                    String sql = "SELECT password FROM users WHERE username=?";
-                    PreparedStatement pstmt = conn.prepareStatement(sql);
-                    pstmt.setString(1,username);
-                    ResultSet rs = pstmt.executeQuery();
-                    if (rs.next()) {
-                        String encodePassword = rs.getString("PASSWORD");
-                        if (MD5.checkpassword(password, encodePassword)) {
+                    Connection connection = DriverManager.getConnection(url,dbUserName,dbPassword);
+//                    System.out.println(connection);
+                    PreparedStatement ps = connection.prepareStatement(sql);
+                    ps.setString(1,username);
+                    ResultSet rs = ps.executeQuery();
+
+                    if(rs.next()){
+                        if(MD5.checkpassword(password,rs.getString("password"))){
                             System.out.println("登录成功");
-                        } else {
+                        }else{
                             System.out.println("登录失败");
                         }
                     }
-                } catch (SQLException ee) {
-                    ee.printStackTrace();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
                 } catch (NoSuchAlgorithmException ex) {
                     ex.printStackTrace();
                 } catch (UnsupportedEncodingException ex) {
                     ex.printStackTrace();
                 }
+
+//                try {
+//                    String url = "jdbc:oracle:thin:@localhost:1521:orcl";
+//                    String username_db = "opts";
+//                    String password_db = "opts1234";
+//                    Connection conn = DriverManager.getConnection(url, username_db, password_db);
+//                    String sql = "SELECT password FROM users WHERE username=?";
+//                    PreparedStatement pstmt = conn.prepareStatement(sql);
+//                    pstmt.setString(1,username);
+//                    ResultSet rs = pstmt.executeQuery();
+//                    if (rs.next()) {
+//                        String encodePassword = rs.getString("PASSWORD");
+//                        if (MD5.checkpassword(password, encodePassword)) {
+//                            System.out.println("登录成功");
+//                        } else {
+//                            System.out.println("登录失败");
+//                        }
+//                    }
+//                } catch (SQLException ee) {
+//                    ee.printStackTrace();
+//                } catch (NoSuchAlgorithmException ex) {
+//                    ex.printStackTrace();
+//                } catch (UnsupportedEncodingException ex) {
+//                    ex.printStackTrace();
+//                }
 				/*
 				1、根据用户去数据库把加密后的密码拿到
 				SELECT password FROM users WHERE username='liwei';
