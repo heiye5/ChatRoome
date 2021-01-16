@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
@@ -60,7 +61,7 @@ public class LoginThread extends Thread {
         t2.setEditable(false);
         loginp.add(t2);
 
-        final JTextField loginPassword = new JTextField("lw1234");
+        final JTextField loginPassword = new JTextField("liwei1234");
         loginPassword.setHorizontalAlignment(JTextField.CENTER);
         loginp.add(loginPassword);
         /*
@@ -104,38 +105,47 @@ public class LoginThread extends Thread {
                     ResultSet rs = ps.executeQuery();
 
                     if(rs.next()){
-//                        System.out.println("sad");
-                        if(MD5.checkpassword(password,rs.getString("password"))){
-                            //获取本机ip
-                            InetAddress ip = InetAddress.getLocalHost();
-                            //设置开启端口8888
-                            String port = "8888";
-                            //在数据库添加ip和端口
-                            sql = "update users set ip = ?,port = ? where username = ?";
-                            ps = connection.prepareStatement(sql);
-                            ps.setString(1, String.valueOf(ip));
-                            ps.setString(2,port);
-                            ps.setString(3,username);
-                            ps.executeUpdate();
+                        try {
+                            if(MD5.checkpassword(password,rs.getString("password"))){
+                                //获取本机ip
+                                InetAddress ip = InetAddress.getLocalHost();
+                                //设置端口，被占用+1
+                                int port = 1688;
+                                while(true) {
+                                    try {
+                                        ServerSocket serverSocket = new ServerSocket(port);
+                                        break;
+                                    } catch (IOException ex) {
+                                        port +=1;
+                                    }
+                                }
+                                //在数据库添加ip和端口
+                                sql = "update users set ip = ?,port = ?,status=? where username = ?";
+                                ps = connection.prepareStatement(sql);
+                                ps.setString(1, String.valueOf(ip));
+                                ps.setInt(2,port);
+                                ps.setInt(3,1);
+                                ps.setString(4,username);
+                                ps.executeUpdate();
 
-                            //窗口隐藏,public void setVisible(boolean aFlag)：使该组件可见或不可见。
-                            loginf.setVisible(false);
-                            ChatThreadWindow  chatThreadWindow = new ChatThreadWindow();
+                                //窗口隐藏,public void setVisible(boolean aFlag)：使该组件可见或不可见。
+                                loginf.setVisible(false);
+                                ChatThreadWindow  chatThreadWindow = new ChatThreadWindow(username);
 
-                        }else{
-                            System.out.println("登录失败");
+                            }else{
+                                System.out.println("登录失败");
+                            }
+                        } catch (NoSuchAlgorithmException ex) {
+                            ex.printStackTrace();
+                        } catch (UnsupportedEncodingException ex) {
+                            ex.printStackTrace();
+                        } catch (UnknownHostException ex) {
+                            ex.printStackTrace();
                         }
                     }
                 } catch (SQLException ex) {
                     ex.printStackTrace();
-                } catch (NoSuchAlgorithmException ex) {
-                    ex.printStackTrace();
-                } catch (UnsupportedEncodingException ex) {
-                    ex.printStackTrace();
-                } catch (UnknownHostException ex) {
-                    ex.printStackTrace();
                 }
-
 //                try {
 //                    String url = "jdbc:oracle:thin:@localhost:1521:orcl";
 //                    String username_db = "opts";
